@@ -1,7 +1,7 @@
 Per instalar les dependències
 -----------------------------
 
-pip install -r requirements
+pip install -r requirements.txt
 
 Per executar el servei
 -----------------------------
