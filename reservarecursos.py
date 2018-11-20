@@ -1,18 +1,20 @@
 import json
-from datetime import datetime
+import dateutil.parser
 import icalendar
 import urllib
 import ssl
 
-def convertir_a_data(string):
-  #TODO: crec que aixo no acaba de funcionar
-  return datetime.strptime(string.split("+")[0],"%Y-%m-%dT%H:%M:%S")
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
-def convertir_reserves_a_ics(url):
-  cal=icalendar.Calendar()
-  cal.add('prodid', '-//reservarecursos2ics//')
-  cal.add('version', '1.0')
+def convertir_reserves_a_ics_per_id_recurs(id):
+  inici = int((date.today() + relativedelta(months=-6)).strftime('%s'))*1000
+  fi = int((date.today() + relativedelta(months=+6)).strftime('%s'))*1000  
+  url="https://reservarecursos.upc.edu/utgcntic/bookingliveview/json?nid=%s&start=%s&end=%s" % (id,inici,fi)
+  return convertir_reserves_a_ics_per_url(url)
 
+def convertir_reserves_a_ics_per_url(url):
+  # Afegim aixo per no validar el certificat SSL (dona problemes)
   try:
     _create_unverified_https_context = ssl._create_unverified_context
   except AttributeError:
@@ -22,17 +24,22 @@ def convertir_reserves_a_ics(url):
     # Handle target environment that doesn't support HTTPS verification
     ssl._create_default_https_context = _create_unverified_https_context
 
-  j=urllib.urlopen(url).read().replace('\\','')
-  data = json.loads(j)
-  print data
+  text=urllib.urlopen(url).read().replace('\\','')
+  return convertir_reserves_a_ics_per_json(text)
+
+def convertir_reserves_a_ics_per_json(text):
+  data = json.loads(text)
+  cal=icalendar.Calendar()
+  cal.add('prodid', '-//reservarecursos2ics//')
+  cal.add('version', '1.0')
+
 
   for e in data:
       if not e['mode']=='restriction':
         event = icalendar.Event()
         event.add('title',e['title'])
-        event.add('dtstart',convertir_a_data(e['start']))
-        event.add('dtend',convertir_a_data(e['end']))
+        event.add('dtstart',dateutil.parser.parse(e['start']))
+        event.add('dtend',dateutil.parser.parse(e['end']))
         cal.add_component(event)
 
   return cal.to_ical()
-
