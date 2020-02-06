@@ -24,7 +24,7 @@ def convertir_reserves_a_ics_per_url(url):
     # Handle target environment that doesn't support HTTPS verification
     ssl._create_default_https_context = _create_unverified_https_context
 
-  text=urllib.urlopen(url).read().replace('\\','')
+  text=urllib.request.urlopen(url).read().decode().replace('\\\'','\'')
   return convertir_reserves_a_ics_per_json(text)
 
 def convertir_reserves_a_ics_per_json(text):
