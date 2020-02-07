@@ -37,7 +37,9 @@ def convertir_reserves_a_ics_per_json(text):
   for e in data:
       if not e['mode']=='restriction':
         event = icalendar.Event()
-        event.add('title',e['title'])
+        event.add('summary',e['title'])
+        event.add('uid',e['id'])
+        event.add('url','https://reservarecursos.upc.edu/utgcntic/node/'+e['id'])
         event.add('dtstart',dateutil.parser.parse(e['start']))
         event.add('dtend',dateutil.parser.parse(e['end']))
         cal.add_component(event)
